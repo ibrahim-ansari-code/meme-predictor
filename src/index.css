@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body, * {
+  cursor: url('/Cursorforwebsite-128.png') 0 0, auto !important;
+}
+
 body {
   margin: 0;
   font-family: 'Comic Sans MS', cursive;

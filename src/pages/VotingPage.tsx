@@ -30,13 +30,23 @@ const VotingPage = () => {
         }}>
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4" style={{
-              color: '#000',
-              textShadow: '3px 3px 0px #fff, -3px -3px 0px #fff, 3px -3px 0px #fff, -3px 3px 0px #fff'
-            }}>
-              <span className="bg-white px-4 py-2 border-4 border-red-500 inline-block">BAD</span>
-              <span className="bg-white px-4 py-2 border-4 border-black inline-block ml-2">HTML</span>
-            </h1>
+            <div className="flex items-center justify-center gap-4 mb-4 flex-wrap">
+              <img 
+                src="/Tongue Out Face Meme.jpg" 
+                alt="Tongue Out Face Meme" 
+                className="max-w-xs"
+                style={{ maxHeight: '200px', objectFit: 'contain' }}
+              />
+              <span className="text-5xl font-bold text-black" style={{ fontFamily: 'Comic Sans MS' }}>
+                OR
+              </span>
+              <img 
+                src="/Michael Jordan GIF.gif" 
+                alt="Michael Jordan GIF" 
+                className="max-w-xs"
+                style={{ maxHeight: '200px', objectFit: 'contain' }}
+              />
+            </div>
             <p className="text-lg text-black font-bold">
               Today is {new Date().toLocaleDateString('en-US', { 
                 weekday: 'long', 
