@@ -175,12 +175,12 @@ const VotingPage = () => {
               }}
             >
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-black mb-4">
+                <h2 className="text-3xl font-bold text-black mb-4" style={{ fontFamily: 'Comic Sans MS' }}>
                   {characterA ? characterA.name.toUpperCase() : 'LOADING...'}
                 </h2>
                 <div className="bg-gray-200 h-64 flex items-center justify-center mb-4 overflow-hidden">
                   {loading ? (
-                    <span className="text-gray-600 text-xl font-bold">LOADING...</span>
+                    <span className="text-gray-600 text-xl font-bold" style={{ fontFamily: 'Comic Sans MS' }}>LOADING...</span>
                   ) : characterA && characterA.image_url ? (
                     <img 
                       src={characterA.image_url} 
@@ -188,10 +188,10 @@ const VotingPage = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-gray-600 text-xl font-bold">IMAGE PLACEHOLDER</span>
+                    <span className="text-gray-600 text-xl font-bold" style={{ fontFamily: 'Comic Sans MS' }}>IMAGE PLACEHOLDER</span>
                   )}
                 </div>
-                <p className="text-black font-bold text-lg">CLICK TO VOTE</p>
+                <p className="text-black font-bold text-lg" style={{ fontFamily: 'Comic Sans MS' }}>CLICK TO VOTE</p>
               </div>
             </div>
 
@@ -210,12 +210,12 @@ const VotingPage = () => {
               }}
             >
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-black mb-4">
+                <h2 className="text-3xl font-bold text-black mb-4" style={{ fontFamily: 'Comic Sans MS' }}>
                   {characterB ? characterB.name.toUpperCase() : 'LOADING...'}
                 </h2>
                 <div className="bg-gray-200 h-64 flex items-center justify-center mb-4 overflow-hidden">
                   {loading ? (
-                    <span className="text-gray-600 text-xl font-bold">LOADING...</span>
+                    <span className="text-gray-600 text-xl font-bold" style={{ fontFamily: 'Comic Sans MS' }}>LOADING...</span>
                   ) : characterB && characterB.image_url ? (
                     <img 
                       src={characterB.image_url} 
@@ -223,10 +223,10 @@ const VotingPage = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-gray-600 text-xl font-bold">IMAGE PLACEHOLDER</span>
+                    <span className="text-gray-600 text-xl font-bold" style={{ fontFamily: 'Comic Sans MS' }}>IMAGE PLACEHOLDER</span>
                   )}
                 </div>
-                <p className="text-black font-bold text-lg">CLICK TO VOTE</p>
+                <p className="text-black font-bold text-lg" style={{ fontFamily: 'Comic Sans MS' }}>CLICK TO VOTE</p>
               </div>
             </div>
           </div>

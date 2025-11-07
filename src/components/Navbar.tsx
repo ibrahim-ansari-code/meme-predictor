@@ -7,14 +7,14 @@ const Navbar = () => {
         <Link 
           to="/" 
           className="text-yellow-400 text-2xl font-bold underline hover:text-yellow-300"
-          style={{ textShadow: '2px 2px 0px #000' }}
+          style={{ textShadow: '2px 2px 0px #000', fontFamily: 'Comic Sans MS' }}
         >
           VOTING
         </Link>
         <Link 
           to="/leaderboard" 
           className="text-yellow-400 text-2xl font-bold underline hover:text-yellow-300"
-          style={{ textShadow: '2px 2px 0px #000' }}
+          style={{ textShadow: '2px 2px 0px #000', fontFamily: 'Comic Sans MS' }}
         >
           LEADERBOARD
         </Link>
