@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html, body, * {
-  cursor: url('/Cursorforwebsite-128.png') 0 0, auto !important;
+  cursor: url('/Cursorforwebsite-32.png') 0 0, auto !important;
 }
 
 body {

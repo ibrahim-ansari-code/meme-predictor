@@ -1,20 +1,115 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { type Character } from '../lib/supabase'
+import { getRandomMatchup, processVote } from '../lib/voting'
 
 const VotingPage = () => {
-  const [selectedCard, setSelectedCard] = useState<number | null>(null)
+  const [characterA, setCharacterA] = useState<Character | null>(null)
+  const [characterB, setCharacterB] = useState<Character | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [eloChanges, setEloChanges] = useState<{
+    characterA: { name: string; change: number; newElo: number }
+    characterB: { name: string; change: number; newElo: number }
+  } | null>(null)
 
-  const handleCardClick = (cardNumber: number) => {
-    setSelectedCard(cardNumber)
+  // Load initial matchup
+  useEffect(() => {
+    loadMatchup()
+  }, [])
+
+  const loadMatchup = async () => {
+    setLoading(true)
+    try {
+      const matchup = await getRandomMatchup()
+      if (matchup) {
+        setCharacterA(matchup[0])
+        setCharacterB(matchup[1])
+      }
+    } catch (error) {
+      console.error('Error loading matchup:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVote = async (winnerId: string) => {
+    if (!characterA || !characterB) return
+
+    setLoading(true)
+    try {
+      const result = await processVote(characterA.id, characterB.id, winnerId)
+      
+      // Show ELO changes below
+      setEloChanges({
+        characterA: {
+          name: result.characterA.name,
+          change: result.eloChanges.characterA.change,
+          newElo: result.characterA.elo_rating
+        },
+        characterB: {
+          name: result.characterB.name,
+          change: result.eloChanges.characterB.change,
+          newElo: result.characterB.elo_rating
+        }
+      })
+
+      // Update local state with new ELO ratings
+      setCharacterA(result.characterA)
+      setCharacterB(result.characterB)
+
+      // Load new matchup after 3 seconds
+      setTimeout(() => {
+        setEloChanges(null)
+        loadMatchup()
+      }, 3000)
+    } catch (error) {
+      console.error('Error processing vote:', error)
+      alert('Error processing vote. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSkip = () => {
-    setSelectedCard(null)
-    // TODO: Implement skip logic
+    setEloChanges(null)
+    loadMatchup()
   }
 
-  const handleDraw = () => {
-    setSelectedCard(null)
-    // TODO: Implement draw/tie logic
+  const handleDraw = async () => {
+    if (!characterA || !characterB) return
+
+    setLoading(true)
+    try {
+      const result = await processVote(characterA.id, characterB.id, null) // null = draw
+      
+      // Show ELO changes below
+      setEloChanges({
+        characterA: {
+          name: result.characterA.name,
+          change: result.eloChanges.characterA.change,
+          newElo: result.characterA.elo_rating
+        },
+        characterB: {
+          name: result.characterB.name,
+          change: result.eloChanges.characterB.change,
+          newElo: result.characterB.elo_rating
+        }
+      })
+
+      // Update local state
+      setCharacterA(result.characterA)
+      setCharacterB(result.characterB)
+
+      // Load new matchup after 3 seconds
+      setTimeout(() => {
+        setEloChanges(null)
+        loadMatchup()
+      }, 3000)
+    } catch (error) {
+      console.error('Error processing draw:', error)
+      alert('Error processing draw. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -31,30 +126,10 @@ const VotingPage = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-4 mb-4 flex-wrap">
-              <img 
-                src="/Tongue Out Face Meme.jpg" 
-                alt="Tongue Out Face Meme" 
-                className="max-w-xs"
-                style={{ maxHeight: '200px', objectFit: 'contain' }}
-              />
               <span className="text-5xl font-bold text-black" style={{ fontFamily: 'Comic Sans MS' }}>
                 OR
               </span>
-              <img 
-                src="/Michael Jordan GIF.gif" 
-                alt="Michael Jordan GIF" 
-                className="max-w-xs"
-                style={{ maxHeight: '200px', objectFit: 'contain' }}
-              />
             </div>
-            <p className="text-lg text-black font-bold">
-              Today is {new Date().toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </p>
           </div>
 
           {/* Two voting cards side by side */}
@@ -62,19 +137,33 @@ const VotingPage = () => {
             {/* Card 1 */}
             <div 
               className="relative cursor-pointer"
-              onClick={() => handleCardClick(1)}
+              onClick={() => characterA && !loading && handleVote(characterA.id)}
               style={{
                 border: '4px dotted white',
-                background: 'transparent',
+                background: loading ? 'rgba(255, 255, 255, 0.3)' : 'transparent',
                 padding: '20px',
                 minWidth: '300px',
-                maxWidth: '400px'
+                maxWidth: '400px',
+                opacity: loading ? 0.6 : 1,
+                pointerEvents: loading ? 'none' : 'auto'
               }}
             >
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-black mb-4">MEME 1</h2>
-                <div className="bg-gray-200 h-64 flex items-center justify-center mb-4">
-                  <span className="text-gray-600 text-xl font-bold">IMAGE PLACEHOLDER</span>
+                <h2 className="text-3xl font-bold text-black mb-4">
+                  {characterA ? characterA.name.toUpperCase() : 'LOADING...'}
+                </h2>
+                <div className="bg-gray-200 h-64 flex items-center justify-center mb-4 overflow-hidden">
+                  {loading ? (
+                    <span className="text-gray-600 text-xl font-bold">LOADING...</span>
+                  ) : characterA && characterA.image_url ? (
+                    <img 
+                      src={characterA.image_url} 
+                      alt={characterA.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-gray-600 text-xl font-bold">IMAGE PLACEHOLDER</span>
+                  )}
                 </div>
                 <p className="text-black font-bold text-lg">CLICK TO VOTE</p>
               </div>
@@ -83,39 +172,85 @@ const VotingPage = () => {
             {/* Card 2 */}
             <div 
               className="relative cursor-pointer"
-              onClick={() => handleCardClick(2)}
+              onClick={() => characterB && !loading && handleVote(characterB.id)}
               style={{
                 border: '4px dotted white',
-                background: 'transparent',
+                background: loading ? 'rgba(255, 255, 255, 0.3)' : 'transparent',
                 padding: '20px',
                 minWidth: '300px',
-                maxWidth: '400px'
+                maxWidth: '400px',
+                opacity: loading ? 0.6 : 1,
+                pointerEvents: loading ? 'none' : 'auto'
               }}
             >
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-black mb-4">MEME 2</h2>
-                <div className="bg-gray-200 h-64 flex items-center justify-center mb-4">
-                  <span className="text-gray-600 text-xl font-bold">IMAGE PLACEHOLDER</span>
+                <h2 className="text-3xl font-bold text-black mb-4">
+                  {characterB ? characterB.name.toUpperCase() : 'LOADING...'}
+                </h2>
+                <div className="bg-gray-200 h-64 flex items-center justify-center mb-4 overflow-hidden">
+                  {loading ? (
+                    <span className="text-gray-600 text-xl font-bold">LOADING...</span>
+                  ) : characterB && characterB.image_url ? (
+                    <img 
+                      src={characterB.image_url} 
+                      alt={characterB.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-gray-600 text-xl font-bold">IMAGE PLACEHOLDER</span>
+                  )}
                 </div>
                 <p className="text-black font-bold text-lg">CLICK TO VOTE</p>
               </div>
             </div>
           </div>
 
+          {/* ELO Changes Display */}
+          {eloChanges && (
+            <div className="mb-8 text-center">
+              <div className="inline-block bg-yellow-400 p-6 border-4 border-black">
+                <h3 className="text-2xl font-bold text-black mb-4" style={{ fontFamily: 'Comic Sans MS' }}>
+                  ELO CHANGES
+                </h3>
+                <div className="flex justify-center gap-8 flex-wrap">
+                  <div>
+                    <p className="text-xl font-bold text-black">{eloChanges.characterA.name.toUpperCase()}</p>
+                    <p className="text-3xl font-bold text-black">
+                      {eloChanges.characterA.change > 0 ? '+' : ''}{eloChanges.characterA.change.toFixed(2)}
+                    </p>
+                    <p className="text-sm text-black">New ELO: {eloChanges.characterA.newElo.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-black">{eloChanges.characterB.name.toUpperCase()}</p>
+                    <p className="text-3xl font-bold text-black">
+                      {eloChanges.characterB.change > 0 ? '+' : ''}{eloChanges.characterB.change.toFixed(2)}
+                    </p>
+                    <p className="text-sm text-black">New ELO: {eloChanges.characterB.newElo.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Skip and Draw buttons */}
           <div className="flex justify-center gap-4 flex-wrap">
             <button
               onClick={handleSkip}
+              disabled={loading}
               className="px-8 py-4 text-xl cursor-pointer transition-colors"
               style={{
                 fontFamily: 'Comic Sans MS',
                 fontWeight: 'bold',
                 color: '#000',
                 background: 'transparent',
-                border: 'none'
+                border: 'none',
+                opacity: loading ? 0.5 : 1,
+                cursor: loading ? 'not-allowed' : 'pointer'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'yellow'
+                if (!loading) {
+                  e.currentTarget.style.background = 'yellow'
+                }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent'
@@ -125,16 +260,21 @@ const VotingPage = () => {
             </button>
             <button
               onClick={handleDraw}
+              disabled={loading || !characterA || !characterB}
               className="px-8 py-4 text-xl cursor-pointer transition-colors"
               style={{
                 fontFamily: 'Comic Sans MS',
                 fontWeight: 'bold',
                 color: '#000',
                 background: 'transparent',
-                border: 'none'
+                border: 'none',
+                opacity: loading || !characterA || !characterB ? 0.5 : 1,
+                cursor: loading || !characterA || !characterB ? 'not-allowed' : 'pointer'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'yellow'
+                if (!loading && characterA && characterB) {
+                  e.currentTarget.style.background = 'yellow'
+                }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent'
@@ -148,7 +288,7 @@ const VotingPage = () => {
           <div className="mt-8 text-center">
             <div className="inline-block bg-green-400 p-4 border-4 border-black">
               <p className="text-black font-bold">
-                <span className="text-2xl">⭐</span> VOTE FOR YOUR FAVORITE MEME! <span className="text-2xl">⭐</span>
+                <span className="text-2xl">⭐</span> WHO ARE YOU LETTING HIT? <span className="text-2xl">⭐</span>
               </p>
             </div>
           </div>
